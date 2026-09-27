@@ -1,0 +1,103 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ems-config
+  namespace: ems
+data:
+  APP_ENV: "production"
+  PORT: "8000"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ems-secret
+  namespace: ems
+type: Opaque
+stringData:
+  DATABASE_URL: "postgresql+psycopg2://employees:change-me-in-production-strong-password@postgres.ems.svc.cluster.local:5432/employees"
+  SECRET_KEY: "change-me-in-production-min-32-chars-long-super-secret-key"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: employee-management-system
+  namespace: ems
+  labels:
+    app: ems
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: ems
+  template:
+    metadata:
+      labels:
+        app: ems
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+      containers:
+        - name: ems
+          # Replaced dynamically during CI/CD with the versioned artifact tag
+          image: ghcr.io/staffpulse/ems:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
+              name: http
+          envFrom:
+            - configMapRef:
+                name: ems-config
+            - secretRef:
+                name: ems-secret
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "256Mi"
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            capabilities:
+              drop:
+                - ALL
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ems-service
+  namespace: ems
+  labels:
+    app: ems
+spec:
+  selector:
+    app: ems
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8000
+  type: ClusterIP

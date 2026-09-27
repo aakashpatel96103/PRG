@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ems
+  labels:
+    app.kubernetes.io/name: employee-management-system
+    app.kubernetes.io/part-of: staffpulse

@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>StaffPulse — Enterprise Employee Management System</title>
+  <meta name="description" content="Production-ready FastAPI Employee Management System with JWT Authentication, Role-based CRUD, Prometheus Metrics, and Kubernetes Health Checks." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <!-- Ambient background glow elements -->
+  <div class="glow-orb orb-1"></div>
+  <div class="glow-orb orb-2"></div>
+  <div class="glow-orb orb-3"></div>
+
+  <div class="app-layout">
+    <!-- Top Navigation Bar -->
+    <header class="navbar">
+      <div class="nav-brand">
+        <div class="brand-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+            <circle cx="9" cy="7" r="4"></circle>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <span class="brand-title">StaffPulse</span>
+          <span class="brand-badge">FastAPI • K8s Ready</span>
+        </div>
+      </div>
+
+      <div class="nav-center">
+        <div class="health-pill" id="healthPill" title="Live Kubernetes Liveness & Readiness status">
+          <span class="status-dot"></span>
+          <span class="health-text" id="healthStatusText">Checking cluster...</span>
+        </div>
+      </div>
+
+      <div class="nav-actions">
+        <a href="/docs" target="_blank" class="nav-link" id="apiDocsBtn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+          API Docs
+        </a>
+        <button class="nav-link" id="openMetricsModalBtn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+          Observability
+        </button>
+        <div class="user-profile-widget" id="userProfileWidget">
+          <!-- Injected via app.js -->
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      <!-- Hero / Stats Section -->
+      <section class="metrics-grid">
+        <div class="metric-card">
+          <div class="metric-icon metric-purple">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+          </div>
+          <div class="metric-info">
+            <span class="metric-label">Total Employees</span>
+            <div class="metric-value-wrap">
+              <span class="metric-value" id="statTotalEmployees">0</span>
+              <span class="metric-badge positive" id="statActiveRatio">100% active</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon metric-emerald">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+          </div>
+          <div class="metric-info">
+            <span class="metric-label">Annual Payroll</span>
+            <div class="metric-value-wrap">
+              <span class="metric-value" id="statTotalPayroll">$0</span>
+              <span class="metric-sub" id="statAvgSalary">Avg $0</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon metric-amber">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+          </div>
+          <div class="metric-info">
+            <span class="metric-label">Departments</span>
+            <div class="metric-value-wrap">
+              <span class="metric-value" id="statTotalDepts">0</span>
+              <span class="metric-sub" id="deptBreakdown">Global Units</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon metric-blue">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
+          </div>
+          <div class="metric-info">
+            <span class="metric-label">DB Ping & Latency</span>
+            <div class="metric-value-wrap">
+              <span class="metric-value" id="statDbPing">-- ms</span>
+              <span class="metric-badge" id="k8sProbeBadge">Readiness: OK</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Main Directory Card -->
+      <section class="directory-card">
+        <!-- Controls Header -->
+        <div class="directory-controls">
+          <div class="search-filter-group">
+            <div class="search-input-wrapper">
+              <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+              <input type="text" id="searchInput" placeholder="Search employees by name, role, email..." />
+            </div>
+
+            <div class="filter-dropdowns">
+              <select id="departmentFilter">
+                <option value="">All Departments</option>
+                <option value="Engineering">Engineering</option>
+                <option value="Product">Product</option>
+                <option value="Marketing">Marketing</option>
+                <option value="Sales">Sales</option>
+                <option value="Operations">Operations</option>
+                <option value="Human Resources">Human Resources</option>
+                <option value="Finance">Finance</option>
+              </select>
+
+              <select id="statusFilter">
+                <option value="">All Statuses</option>
+                <option value="active">Active</option>
+                <option value="on_leave">On Leave</option>
+                <option value="terminated">Terminated</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="action-buttons-group">
+            <button class="btn btn-secondary" id="refreshBtn" title="Refresh Table">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path></svg>
+              Refresh
+            </button>
+            <button class="btn btn-primary" id="addEmployeeBtn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+              Add Employee
+            </button>
+          </div>
+        </div>
+
+        <!-- Table Container -->
+        <div class="table-responsive">
+          <table class="data-table" id="employeesTable">
+            <thead>
+              <tr>
+                <th>Employee</th>
+                <th>Department</th>
+                <th>Position</th>
+                <th>Salary</th>
+                <th>Status</th>
+                <th>Hire Date</th>
+                <th class="text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="employeesTbody">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+
+          <!-- Empty State -->
+          <div class="empty-state" id="emptyState" style="display: none;">
+            <div class="empty-icon">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"></circle><path d="M16 16s-1.5-2-4-2-4 2-4 2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg>
+            </div>
+            <h3>No employees found</h3>
+            <p>Try adjusting your search criteria or add a new employee record.</p>
+            <button class="btn btn-primary" id="emptyAddBtn">Add Employee</button>
+          </div>
+
+          <!-- Loading State -->
+          <div class="loading-state" id="loadingState">
+            <div class="spinner"></div>
+            <p>Loading directory data...</p>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Modal: Employee Form (Add / Edit) -->
+  <div class="modal-backdrop" id="employeeModalBackdrop">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="employeeModalTitle">Add New Employee</h3>
+        <button class="modal-close" id="closeEmployeeModalBtn">&times;</button>
+      </div>
+      <form id="employeeForm">
+        <input type="hidden" id="employeeId" />
+        <div class="form-row">
+          <div class="form-group">
+            <label for="empFullName">Full Name *</label>
+            <input type="text" id="empFullName" required placeholder="e.g. Jane Doe" />
+          </div>
+          <div class="form-group">
+            <label for="empEmail">Corporate Email *</label>
+            <input type="email" id="empEmail" required placeholder="e.g. jane.doe@company.com" />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="empDepartment">Department *</label>
+            <input type="text" id="empDepartment" required placeholder="e.g. Engineering" list="deptSuggestions" />
+            <datalist id="deptSuggestions">
+              <option value="Engineering">
+              <option value="Product">
+              <option value="Marketing">
+              <option value="Sales">
+              <option value="Operations">
+              <option value="Human Resources">
+              <option value="Finance">
+            </datalist>
+          </div>
+          <div class="form-group">
+            <label for="empPosition">Position / Job Title *</label>
+            <input type="text" id="empPosition" required placeholder="e.g. Senior Software Engineer" />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="empSalary">Annual Salary (USD) *</label>
+            <input type="number" id="empSalary" min="1" step="500" required placeholder="e.g. 115000" />
+          </div>
+          <div class="form-group">
+            <label for="empPhone">Phone Number</label>
+            <input type="tel" id="empPhone" placeholder="e.g. +1 (555) 234-5678" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="empStatus">Employment Status *</label>
+          <select id="empStatus" required>
+            <option value="active">Active</option>
+            <option value="on_leave">On Leave</option>
+            <option value="terminated">Terminated</option>
+          </select>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" id="cancelEmployeeModalBtn">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="saveEmployeeBtn">Save Employee</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Authentication (Login / Register) -->
+  <div class="modal-backdrop" id="authModalBackdrop">
+    <div class="modal-card auth-modal">
+      <div class="modal-header">
+        <h3 id="authModalTitle">Sign In to StaffPulse</h3>
+        <button class="modal-close" id="closeAuthModalBtn">&times;</button>
+      </div>
+
+      <div class="auth-tabs">
+        <button class="auth-tab active" id="tabSignIn">Sign In</button>
+        <button class="auth-tab" id="tabRegister">Register Account</button>
+      </div>
+
+      <!-- Sign In Form -->
+      <form id="loginForm" class="auth-form">
+        <div class="form-group">
+          <label for="loginUsername">Username</label>
+          <input type="text" id="loginUsername" required autocomplete="username" placeholder="Username" />
+        </div>
+        <div class="form-group">
+          <label for="loginPassword">Password</label>
+          <input type="password" id="loginPassword" required autocomplete="current-password" placeholder="Password" />
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" id="cancelLoginBtn">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="submitLoginBtn">Sign In</button>
+        </div>
+      </form>
+
+      <!-- Register Form -->
+      <form id="registerForm" class="auth-form" style="display: none;">
+        <div class="form-group">
+          <label for="regFullName">Full Name</label>
+          <input type="text" id="regFullName" placeholder="e.g. Alice Smith" />
+        </div>
+        <div class="form-group">
+          <label for="regUsername">Username (min 3 chars)</label>
+          <input type="text" id="regUsername" required minlength="3" placeholder="alice" />
+        </div>
+        <div class="form-group">
+          <label for="regPassword">Password (min 6 chars)</label>
+          <input type="password" id="regPassword" required minlength="6" placeholder="••••••••" />
+        </div>
+        <div class="admin-notice">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+          <span>The first registered user automatically acquires the <strong>Admin</strong> role!</span>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" id="cancelRegisterBtn">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="submitRegisterBtn">Create Account</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Observability & Health Details -->
+  <div class="modal-backdrop" id="metricsModalBackdrop">
+    <div class="modal-card wide-modal">
+      <div class="modal-header">
+        <h3>CI/CD, Monitoring & Health Probes</h3>
+        <button class="modal-close" id="closeMetricsModalBtn">&times;</button>
+      </div>
+      <div class="metrics-modal-body">
+        <div class="probe-cards-row">
+          <div class="probe-box" id="livenessProbeBox">
+            <div class="probe-badge green">Liveness (/health)</div>
+            <h4>Status: OK (HTTP 200)</h4>
+            <p>Validates container process responsiveness inside Kubernetes Pod.</p>
+          </div>
+          <div class="probe-box" id="readinessProbeBox">
+            <div class="probe-badge green">Readiness (/health/ready)</div>
+            <h4 id="readinessStatusHeader">Database Connected</h4>
+            <p>Guarantees database query responsiveness before routing ingress traffic.</p>
+          </div>
+          <div class="probe-box">
+            <div class="probe-badge blue">Prometheus (/metrics)</div>
+            <h4>Active Scrape Target</h4>
+            <p>Exposes Prometheus counters, latency histograms, and GC gauges.</p>
+          </div>
+        </div>
+
+        <div class="pipeline-flow">
+          <h4>CI/CD Pipeline Architecture</h4>
+          <div class="pipeline-steps">
+            <div class="p-step"><span class="step-num">1</span> Git Commit</div>
+            <div class="p-arrow">→</div>
+            <div class="p-step"><span class="step-num">2</span> Ruff & Pytest</div>
+            <div class="p-arrow">→</div>
+            <div class="p-step"><span class="step-num">3</span> Bandit & Pip-Audit</div>
+            <div class="p-arrow">→</div>
+            <div class="p-step"><span class="step-num">4</span> Docker Build & Trivy</div>
+            <div class="p-arrow">→</div>
+            <div class="p-step"><span class="step-num">5</span> K8s Rollout & Verification</div>
+          </div>
+        </div>
+
+        <div class="metrics-preview">
+          <div class="preview-header">
+            <span>Raw Prometheus Metrics Excerpt</span>
+            <button class="btn btn-xs" id="refreshMetricsExcerptBtn">Refresh</button>
+          </div>
+          <pre id="metricsPre">Loading metrics...</pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

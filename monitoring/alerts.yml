@@ -1,0 +1,29 @@
+groups:
+  - name: ems_alerts
+    rules:
+      - alert: ServiceDown
+        expr: up{job="employee-management-system"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "EMS API instance is down"
+          description: "Target {{ $labels.instance }} has been unreachable for > 1 minute."
+
+      - alert: HighHttpErrorRate
+        expr: sum(rate(http_requests_total{status=~"5.."}[2m])) / sum(rate(http_requests_total[2m])) * 100 > 5
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High HTTP 5xx error rate detected"
+          description: "Over 5% of requests returned 5xx status codes over the last 2 minutes."
+
+      - alert: HighRequestLatency
+        expr: histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le)) > 1.0
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "P95 request latency exceeds 1 second"
+          description: "95th percentile latency is currently {{ $value }}s."
