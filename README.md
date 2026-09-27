@@ -185,16 +185,22 @@ kubectl apply -f k8s/postgres.yaml
 # 3. Deploy StaffPulse Application
 kubectl apply -f k8s/app.yaml
 
-# 4. Deploy Ingress and Autoscaler
+# 4. Deploy Ingress, Autoscaler, and Monitoring (Prometheus & Grafana)
 kubectl apply -f k8s/ingress.yaml
 kubectl apply -f k8s/hpa.yaml
+kubectl apply -f k8s/monitoring.yaml
 
 # 5. Check Deployment Status
 kubectl get pods -n ems -w
 
-# 6. Access via Port-Forwarding
+# 6. Access Services via Port-Forwarding
+# Application Web UI:
 kubectl port-forward svc/ems-service 8080:80 -n ems
-# Open http://localhost:8080 in your browser
+# Open http://localhost:8080
+
+# Grafana Monitoring (Default Login: admin / admin):
+kubectl port-forward svc/grafana 3000:3000 -n ems
+# Open http://localhost:3000
 ```
 
 ---
